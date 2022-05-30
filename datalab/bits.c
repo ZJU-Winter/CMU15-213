@@ -209,8 +209,7 @@ int isAsciiDigit(int x) {
     int condition1 = !((x >> 4) ^ 0x3);
     int lastFourDigits = x & 0x0F;
     int minusTen = ~0xA + 1;
-    int temp = 0x1 << 31;
-    int condition2 = !!((lastFourDigits + minusTen) & temp);
+    int condition2 = ~(((lastFourDigits + minusTen) >> 31) + 1);
     return condition1 & condition2;
 }
 /* 
@@ -238,8 +237,14 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-
-    return 2;
+    int xSignBit = (x >> 31) & 0x1;
+    int ySignBit = (y >> 31) & 0x1;
+    int a = xSignBit & ~ySignBit; // x < 0 and y > 0
+    int b = ~xSignBit & ySignBit; // x > 0 and y < 0
+    //if (a) return 1; if (b) return 0; else return x - y signbit
+    int minus = x + (~y + 1);
+    int signBit = minus >> 31 & 0x1;
+    return !(x ^ y) | a | (!b & !!signBit);
 }
 //4
 /* 
@@ -251,13 +256,7 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-    // if x <= 0, a = 0
-    // if x > 0, a = -1
-    int a = ((~x + 1) >> 31) & 0x1;
-    int signbit = x >> 31;
-    // we want if x < 0, a = -1
-    a = a + (~signbit + 1);
-    return a + 1;
+    return ((x | (~x +1)) >> 31) + 1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -273,6 +272,7 @@ int logicalNeg(int x) {
  */
 int howManyBits(int x) {
   return 0;
+  
 }
 //float
 /* 

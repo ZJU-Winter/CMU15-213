@@ -224,8 +224,8 @@ int conditional(int x, int y, int z) {
     //make a = 0xFFFFFFFF when x != 0
     int a = !!x;
     a = ~a + 1;
-    //x != 0 b = 0 c = -z
-    //x == 0 b = -y c = 0
+    //x != 0 --> b = 0 c = -z
+    //x == 0 --> b = -y c = 0
     int b = ~(y & ~a) + 1;
     int c = ~(z & a) + 1;
     return y + z + b + c;
@@ -251,8 +251,13 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-    // x == 0 
-    return x^(~x + 1);
+    // if x <= 0, a = 0
+    // if x > 0, a = -1
+    int a = ((~x + 1) >> 31) & 0x1;
+    int signbit = x >> 31;
+    // we want if x < 0, a = -1
+    a = a + (~signbit + 1);
+    return a + 1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -308,9 +313,6 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-    int signBit = uf >> 31 & 0x1;
-    int exp = (uf & 0x7F800000) >> 23;
-    int frac = uf & 0x007FFFFF;
     return 0;
 }
 /* 

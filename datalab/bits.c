@@ -272,7 +272,6 @@ int logicalNeg(int x) {
  */
 int howManyBits(int x) {
   return 0;
-  
 }
 //float
 /* 

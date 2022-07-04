@@ -121,7 +121,6 @@ bool q_insert_tail(queue_t *q, char *s) {
   The space used by the list element and the string should be freed.
 */
 bool q_remove_head(queue_t *q, char *sp, size_t bufsize) {
-    /* You need to fix up this code. */
     if (!q || !q->head)
         return false;
     list_ele_t* head = q->head;

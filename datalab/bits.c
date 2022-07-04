@@ -312,7 +312,7 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-    return 0;
+    return 1;
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x

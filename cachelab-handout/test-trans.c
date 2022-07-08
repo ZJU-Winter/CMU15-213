@@ -12,7 +12,7 @@
 #include <getopt.h>
 #include <sys/types.h>
 #include "cachelab.h"
-#include <sys/wait.h> // fir WEXITSTATUS
+#include <sys/wait.h> // for WEXITSTATUS
 #include <limits.h> // for INT_MAX
 
 /* Maximum array dimension */

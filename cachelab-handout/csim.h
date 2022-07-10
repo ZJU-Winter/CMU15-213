@@ -1,10 +1,11 @@
 #ifndef CSIM_HEAD
 #define CSIM_HEAD
-
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 typedef enum {false, true} boolean;
 
 typedef struct cacheLine{
     boolean valid;
+    unsigned int lastTime;
     unsigned long tag;
 } cacheLine;
 

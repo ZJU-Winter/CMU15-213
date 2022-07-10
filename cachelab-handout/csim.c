@@ -33,11 +33,35 @@ void unitTest(int setSize, int lineSize, int blockSize, cacheMemory memory) {
     printf("valid:%d, tag:%ld", memory[0].lines[lineSize - 1].valid, memory[0].lines[0].tag);
 }
 
-void load_store(unsigned long tag, unsigned long set, cacheMemory memory) {
-
+void load_store(char *instruction, unsigned long tag, unsigned long set, int setSize, int lineSize, cacheMemory memory) {
+    //cacheLine* lines = memory[set].lines;
+    //printf("instruction %s step in load_store, tag is %ld set is %ld\n", instruction, tag, set);
+    int validCount = memory[set].validCount;
+    for (int i = 0; i < validCount; i += 1) {
+        if (memory[set].lines[i].tag == tag && memory[set].lines[i].valid == true) {
+            hits += 1;
+            if (verbose) {
+                printf("%s hit\n", instruction);
+            }
+            return;
+        }
+    }
+    //didn't match any tag
+    misses += 1;
+    if (validCount != lineSize) {
+        memory[set].lines[validCount].tag = tag;
+        memory[set].lines[validCount].valid = true;
+        memory[set].validCount += 1;
+        if (verbose) {
+            printf("%s miss\n", instruction);
+        }
+        return;
+    }
+    //need to replace something
+    evictions += 1;
 }
 
-void modify(unsigned long tag, unsigned long set, cacheMemory memory) {
+void modify(char *instruction, unsigned long tag, unsigned long set, int setSize, int lineSize, cacheMemory memory) {
 
 }
 
@@ -67,11 +91,14 @@ void cacheSimulator(int setSize, int lineSize, int blockSize, char *filePath) {
         exit(EXIT_FAILURE);
     }
     while (fgets(instruction, 20, fp)) {
+        //remove the newline byte
+        instruction[strcspn(instruction, "\n")] = 0;
         if (instruction[0] == 'I') {
             continue;
         } else {
             sscanf(instruction," %*[^ ] %[^,]", address);
             accessType = instruction[1];
+            //printf("instruction:%s\naddress:%s accessType:%c\n",instruction, address, accessType);
             address_long = strtol(address, NULL, 16);
             set = getSet(address_long, setSize, blockSize);
             tag = getTag(address_long, setSize, blockSize);
@@ -79,10 +106,10 @@ void cacheSimulator(int setSize, int lineSize, int blockSize, char *filePath) {
             {
             case 'S':
             case 'L':
-                load_store(set, tag, memory);
+                load_store(instruction, tag, set, setSize, lineSize, memory);
                 break;
             case 'M':
-                modify(set, tag, memory);
+                modify(instruction, tag, set, setSize, lineSize, memory);
                 break;
             default:
                 printf("wrong access type.\n");

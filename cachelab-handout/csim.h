@@ -10,7 +10,8 @@ typedef struct cacheLine{
 } cacheLine;
 
 typedef struct cacheSet{
-    int validCount;
+    unsigned long validCount;
+    unsigned long maxLastTime;
     cacheLine *lines;
 } cacheSet, *cacheMemory;
 

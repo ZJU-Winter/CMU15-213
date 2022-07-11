@@ -26,7 +26,7 @@ unsigned long get0x(int offset) {
     return rst;
 }
 
-void test(int setSize, int lineSize, int blockSize, cacheMemory memory) {
+void printInfo(int setSize, int lineSize, int blockSize, cacheMemory memory) {
     /*
     char * address = "1210";
     printf("Set:%ld\n", getSet(strtol(address, NULL, 16), setSize, blockSize));
@@ -42,20 +42,16 @@ void test(int setSize, int lineSize, int blockSize, cacheMemory memory) {
 }
 
 void load_store(char *instruction, unsigned long tag, unsigned long set, int setSize, int lineSize, cacheMemory memory) {
-    //cacheLine* lines = memory[set].lines;
-    //printf("instruction %s step in load_store, tag is %ld set is %ld\n", instruction, tag, set);
-    int validCount = memory[set].validCount;
-    unsigned int maxLastTime = 0;
+    unsigned long validCount = memory[set].validCount;
+    unsigned long maxLastTime = memory[set].maxLastTime;
     unsigned int minLastTime = UINT_MAX;
     unsigned int minIndex = 0;
-    for (int i = 0; i < validCount; i += 1) {
-        maxLastTime = MAX(maxLastTime, memory[set].lines[i].lastTime);
-    }
     for (int i = 0; i < validCount; i += 1) {
         if (memory[set].lines[i].valid == true && memory[set].lines[i].tag == tag) {
             // hits
             hits += 1;
             memory[set].lines[i].lastTime = maxLastTime + 1;
+            memory[set].maxLastTime = memory[set].lines[i].lastTime;
             if (verbose) {
                 printf("%s hit\n", instruction);
             }
@@ -68,6 +64,7 @@ void load_store(char *instruction, unsigned long tag, unsigned long set, int set
         memory[set].lines[validCount].tag = tag;
         memory[set].lines[validCount].valid = true;
         memory[set].lines[validCount].lastTime = maxLastTime + 1;
+        memory[set].maxLastTime = memory[set].lines[validCount].lastTime;
         memory[set].validCount += 1;
         if (verbose) {
             printf("%s miss\n", instruction);
@@ -84,22 +81,23 @@ void load_store(char *instruction, unsigned long tag, unsigned long set, int set
     }
     memory[set].lines[minIndex].tag = tag;
     memory[set].lines[minIndex].lastTime = maxLastTime + 1;
+    memory[set].maxLastTime = memory[set].lines[minIndex].lastTime;
     if (verbose) {
         printf("%s miss eviction\n",instruction);
     }
 }
 
 void modify(char *instruction, unsigned long tag, unsigned long set, int setSize, int lineSize, cacheMemory memory) {
-    int validCount = memory[set].validCount;
-    unsigned int maxLastTime = 0;
+    unsigned long validCount = memory[set].validCount;
+    unsigned long maxLastTime = memory[set].maxLastTime;
     unsigned int minLastTime = UINT_MAX;
     unsigned int minIndex = 0;
     for (int i = 0; i < validCount; i += 1) {
-        maxLastTime = MAX(maxLastTime, memory[set].lines[i].lastTime);
         if (memory[set].lines[i].valid == true && memory[set].lines[i].tag == tag) {
             // hits
             hits += 2;
             memory[set].lines[i].lastTime = maxLastTime + 2;
+            memory[set].maxLastTime = memory[set].lines[i].lastTime;
             if (verbose) {
                 printf("%s hit hit\n", instruction);
             }
@@ -113,6 +111,7 @@ void modify(char *instruction, unsigned long tag, unsigned long set, int setSize
         memory[set].lines[validCount].tag = tag;
         memory[set].lines[validCount].valid = true;
         memory[set].lines[validCount].lastTime = maxLastTime + 2;
+        memory[set].maxLastTime = memory[set].lines[validCount].lastTime;
         memory[set].validCount += 1;
         if (verbose) {
             printf("%s miss hit\n", instruction);
@@ -129,6 +128,7 @@ void modify(char *instruction, unsigned long tag, unsigned long set, int setSize
     }
     memory[set].lines[minIndex].tag = tag;
     memory[set].lines[minIndex].lastTime = maxLastTime + 2;
+    memory[set].maxLastTime = memory[set].lines[minIndex].lastTime;
     if (verbose) {
         printf("%s miss eviction hit\n",instruction);
     }
@@ -146,6 +146,7 @@ void cacheInit(int setSize, int lineSize, cacheMemory memory) {
             exit(EXIT_FAILURE);
         }
         memory[i].validCount = 0;
+        memory[i].maxLastTime = 0;
     }
 }
 
@@ -163,7 +164,7 @@ void cacheSimulator(int setSize, int lineSize, int blockSize, char *filePath) {
         exit(EXIT_FAILURE);
     }
     cacheInit(setSize, lineSize, memory);
-    //test(setSize, lineSize, blockSize, memory);
+    //printInfo(setSize, lineSize, blockSize, memory);
     while (fgets(instruction, 20, fp)) {
         //remove the newline byte
         instruction[strcspn(instruction, "\n")] = 0;
@@ -192,7 +193,7 @@ void cacheSimulator(int setSize, int lineSize, int blockSize, char *filePath) {
             }
         }
     }
-    //test(setSize, lineSize, blockSize, memory);
+    //printInfo(setSize, lineSize, blockSize, memory);
     free(instruction);
     free(address);
     for (int i = 0; i < (int)pow(2, setSize); i += 1) {

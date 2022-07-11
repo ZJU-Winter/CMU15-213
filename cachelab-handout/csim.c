@@ -50,6 +50,8 @@ void load_store(char *instruction, unsigned long tag, unsigned long set, int set
     unsigned int minIndex = 0;
     for (int i = 0; i < validCount; i += 1) {
         maxLastTime = MAX(maxLastTime, memory[set].lines[i].lastTime);
+    }
+    for (int i = 0; i < validCount; i += 1) {
         if (memory[set].lines[i].valid == true && memory[set].lines[i].tag == tag) {
             // hits
             hits += 1;
@@ -88,7 +90,48 @@ void load_store(char *instruction, unsigned long tag, unsigned long set, int set
 }
 
 void modify(char *instruction, unsigned long tag, unsigned long set, int setSize, int lineSize, cacheMemory memory) {
-
+    int validCount = memory[set].validCount;
+    unsigned int maxLastTime = 0;
+    unsigned int minLastTime = UINT_MAX;
+    unsigned int minIndex = 0;
+    for (int i = 0; i < validCount; i += 1) {
+        maxLastTime = MAX(maxLastTime, memory[set].lines[i].lastTime);
+        if (memory[set].lines[i].valid == true && memory[set].lines[i].tag == tag) {
+            // hits
+            hits += 2;
+            memory[set].lines[i].lastTime = maxLastTime + 2;
+            if (verbose) {
+                printf("%s hit hit\n", instruction);
+            }
+            return;
+        }
+    }
+    // doesn't match any tag
+    misses += 1;
+    hits += 1;
+    if (validCount != lineSize) {
+        memory[set].lines[validCount].tag = tag;
+        memory[set].lines[validCount].valid = true;
+        memory[set].lines[validCount].lastTime = maxLastTime + 2;
+        memory[set].validCount += 1;
+        if (verbose) {
+            printf("%s miss hit\n", instruction);
+        }
+        return;
+    }
+    // needs to replace something
+    evictions += 1;
+    for (int i = 0; i < lineSize; i += 1) {
+        if (memory[set].lines[i].lastTime < minLastTime) {
+            minLastTime = memory[set].lines[i].lastTime;
+            minIndex = i;
+        }
+    }
+    memory[set].lines[minIndex].tag = tag;
+    memory[set].lines[minIndex].lastTime = maxLastTime + 2;
+    if (verbose) {
+        printf("%s miss eviction hit\n",instruction);
+    }
 }
 
 void cacheInit(int setSize, int lineSize, cacheMemory memory) {

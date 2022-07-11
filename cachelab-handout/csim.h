@@ -1,3 +1,4 @@
+/** Author:Winter **/
 #ifndef CSIM_HEAD
 #define CSIM_HEAD
 #define MAX(a, b) ((a) > (b) ? (a) : (b))

@@ -1,9 +1,0 @@
-{
-  "files.associations": {
-    "unistd.h": "c",
-    "getopt.h": "c"
-  },
-  "cSpell.ignoreWords": [
-    "csim"
-  ],
-}

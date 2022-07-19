@@ -320,6 +320,7 @@ void do_bgfg(char **argv)
 /* 
  * waitfg - Block until process pid is no longer the foreground process
  */
+/* don't use waitpid, let signal handlers to reap. */
 void waitfg(pid_t pid)
 {
     while (1) {
@@ -358,34 +359,38 @@ void sigchld_handler(int sig)
         printf("sigchld_handler: entering\n");
     }
 
-    if ((pid = waitpid(-1, &status, WUNTRACED|WNOHANG)) < 0) {
+    /* WNOHANG: when resume a stopped process, send a SIGCHILD, there is no stopped or exit process */
+    /* so don't wait the process to change. */
+    /* WUNTRACED: when there is a stopped process, return immediately. */
+    if ((pid = waitpid(-1, &status, WUNTRACED | WNOHANG)) < 0) {
         unix_error("waitpid error");
     } else {
         sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
+        //printf("pid:%d\n", pid);
         jid = pid2jid(pid);
+        /* waitpid return 0 if WNOHANG is specifed and nothing can be done for now. */
         if (pid == 0) {
             if (verbose) {
                 printf("sigchld_handler: exiting\n");
                 return;
             }
         }
+        /* different situations */
         if (WIFEXITED(status)) {
             deletejob(jobs, pid);
             if (verbose) {
                 printf("sigchld_handler: Job [%d] (%d) deleted\n", jid, pid);
                 printf("sigchld_handler: Job [%d] (%d) terminated OK (status %d)\n", jid, pid, status);
             }
-        } else if (WIFSIGNALED(status)) {
-            if (WTERMSIG(status) == SIGINT) {
-                deletejob(jobs, pid);
-                if (verbose) {
-                    printf("sigchld_handler: Job [%d] (%d) deleted\n", jid, pid);
-                }
-                printf("Job [%d] (%d) terminated by signal %d\n", jid, pid, WTERMSIG(status));
+        } else if (WIFSIGNALED(status)) {/* returns true if the child process was **terminated** by a signal. */
+            deletejob(jobs, pid);
+            if (verbose) {
+                printf("sigchld_handler: Job [%d] (%d) deleted\n", jid, pid);
             }
-        } else if (WIFSTOPPED(status)) {
+            printf("Job [%d] (%d) terminated by signal %d\n", jid, pid, WTERMSIG(status));
+        } else if (WIFSTOPPED(status)) {/* returns true if the child process was **stopped** by delivery of a signal. */
                 getjobpid(jobs, pid)->state = ST;
-                printf("Job [%d] (%d) stopped by signal %d\n", jid, pid, SIGTSTP);
+                printf("Job [%d] (%d) stopped by signal %d\n", jid, pid, WSTOPSIG(status));
             }
         
         sigprocmask(SIG_SETMASK, &prev_all, NULL);

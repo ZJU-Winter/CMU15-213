@@ -286,10 +286,6 @@ int builtin_cmd(char **argv)
 void do_bgfg(char **argv) 
 {
     struct job_t *job;
-    if (!isdigit(argv[1][0]) && (argv[1][0] != '%')) {
-        printf("%s: argument must be a PID or %%jobid\n", argv[0]);
-        return;
-  }
     if (argv[1] == NULL) {
         printf("%s command needs PID or %%jid\n", argv[0]);
         return;

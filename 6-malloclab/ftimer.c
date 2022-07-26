@@ -101,6 +101,3 @@ static double get_etime(void) {
 		     (first_p.it_value.tv_usec - r_curr.it_value.tv_usec)*1e-6);
 }
 
-
-
-

@@ -42,7 +42,6 @@
 /* Given block ptr bp, compute address of next and previous blocks */
 #define NEXT_BLKP(bp)  ((char *)(bp) + GET_SIZE(((char *)(bp) - WSIZE)))
 #define PREV_BLKP(bp)  ((char *)(bp) - GET_SIZE(((char *)(bp) - DSIZE)))
-/* $end mallocmacros */
 
 /* Global variables */
 static char *heap_listp = 0;  /* Pointer to first block */  
@@ -141,7 +140,6 @@ void mm_free(void *bp)
         return;
 
     size_t size = GET_SIZE(HDRP(bp));
-    /* $end mmfree */
     if (heap_listp == 0){
         mm_init();
     }

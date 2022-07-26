@@ -98,8 +98,7 @@ int mm_init(void)
 /* 
  * mm_malloc - Allocate a block with at least size bytes of payload 
  */
-void *mm_malloc(size_t size) 
-{
+void *mm_malloc(size_t size) {
     size_t asize;      /* Adjusted block size */
     size_t extendsize; /* Amount to extend heap if no fit */
     char *bp;      

@@ -1,6 +1,6 @@
 /* 
- * A simple, 32-bit and 64-bit clean allocator based on implicit free
- * lists, first-fit placement, and boundary tag coalescing, as described
+ * A simple and clean allocator based on implicit free lists,
+ * first-fit placement, and boundary tag coalescing, as described
  * in the CS:APP3e textbook. Blocks aligned to doubleword (8 byte) 
  * boundaries. Minimum block size is 16 bytes with a header and footer.
  */
